@@ -17,7 +17,7 @@ string vector holding multiple option names. All option names are converted to
 lower case.}
 \item{default}{If a single option is specified but not available, this value
 is returned.}
-\item{mimic}{Character. Adjust the option list for this mimic flag.}
+\item{mimic}{Not used for now.}
 }
 \details{
 This is the full list of options that are accepted by the \code{lavaan()}
@@ -82,6 +82,15 @@ Model features (always available):
     \item{\code{parameterization}:}{Currently only used if data is 
       categorical. If \code{"delta"}, the delta parameterization is used. 
       If \code{"theta"}, the theta parameterization is used.}
+    \item{\code{correlation}:}{Only used for (single-level)
+     continuous data. If \code{TRUE}, analyze a correlation matrix (instead
+     of a (co)variance matrix). This implies that the residual observed
+     variances are no longer free parameters. Instead, they are set to
+     values to ensure the model-implied variances are unity. This also
+     affects the standard errors. The only available estimators are GLS and
+     WLS, which produce correct standard errors and a correct test statistic
+     under normal and non-normal conditions respectively. Always assuming
+     \code{fixed.x = FALSE} and \code{conditional.x = FALSE} (for now).}
 }
 
 Model features (only available for the \code{lavaan()} function):
@@ -92,9 +101,8 @@ Model features (only available for the \code{lavaan()} function):
     \item{\code{auto.fix.single}:}{If \code{TRUE}, the residual variance (if 
       included) of an observed indicator is set to zero if it is the only 
       indicator of a latent variable.}
-    \item{\code{auto.var}:}{If \code{TRUE}, the residual variances and the 
-      variances of exogenous latent variables are included in the model and 
-      set free.}
+    \item{auto.var}{If \code{TRUE}, the (residual) variances of both observed
+      and latent variables are set free.}
     \item{\code{auto.cov.lv.x}:}{If \code{TRUE}, the covariances of exogenous 
       latent variables are included in the model and set free.}
     \item{\code{auto.cov.y}:}{If \code{TRUE}, the covariances of dependent 
@@ -114,8 +122,15 @@ Model features (only available for the \code{lavaan()} function):
 Data options:
 
 \describe{
-    \item{\code{std.ov}:}{If \code{TRUE}, all observed variables are 
-      standardized before entering the analysis.}
+    \item{\code{std.ov}:}{If \code{TRUE}, observed variables are 
+      standardized before entering the analysis. By default, these are
+      only the non-exogenous observed variables, unless \code{fixed.x = FALSE}.
+      Use this option with caution; it can be used to test if (for example)
+      nonconvergence was due to scaling issues. But this is still a covariance
+      based analysis, in the sense that no constraints are involved (to 
+      ensure the model-implied (co)variance matrix has unit variances), and the
+      standard errors still assume that the input was unstandardized. See
+      also the \code{correlation} option.}
     \item{\code{missing}:}{The default setting is \code{"listwise"}: all
          cases with missing values
       are removed listwise from the data before the analysis starts. This is
@@ -174,6 +189,10 @@ Data options:
       If \code{"group"}, the sampling weights are normalized per group:
       by dividing by the sum of the weights (in each group), and multiplying
       again by the group size. The default is \code{"total"}.}
+    \item{\code{samplestats}:}{Logical. If \code{FALSE}, no sample statistics
+      will be computed (and no estimation can take place). This can be useful
+      when only a dummy lavaan object is requested, without any computations.
+      The default is \code{TRUE}.}
 }
 
 Data summary options:
@@ -185,8 +204,12 @@ Data summary options:
       on the estimator and the likelihood option: it is set to \code{TRUE} if 
       maximum likelihood estimation is used and \code{likelihood="normal"}, 
       and \code{FALSE} otherwise.}
-    \item{\code{ridge}:}{Numeric. Small constant used for ridging. Only used 
-      if the sample covariance matrix is non positive definite.}
+    \item{\code{ridge}:}{Logical. If \code{TRUE} a small constant value will
+      be added the diagonal elements of the covariance (or correlation) 
+      matrix before analysis. The value can be set using the 
+      \code{ridge.constant} option.}
+    \item{\code{ridge.constant}:}{Numeric. Small constant used for ridging.
+      The default value is 1e-05.}
 }
 
 Multiple group options:
@@ -294,7 +317,7 @@ Estimation options:
       are computed based on inverting the (expected, observed or first.order) 
       information matrix. If \code{"robust.sem"}, conventional robust
       standard errors are computed.  If \code{"robust.huber.white"},
-      standard errors are computed based on the `mlr' (aka pseudo ML,
+      standard errors are computed based on the 'mlr' (aka pseudo ML,
       Huber-White) approach.
       If \code{"robust"}, either \code{"robust.sem"} or
       \code{"robust.huber.white"} is used depending on the estimator,
@@ -310,7 +333,7 @@ Estimation options:
       depends on the values of other arguments. See also the 
       \code{\link{lavTest}} function to extract (alternative)     
       test statistics from a fitted lavaan object.}
-   \item{code{scaled.test}:}{Character. Choose the test statistic
+   \item{\code{scaled.test}:}{Character. Choose the test statistic
     that will be scaled (if a scaled test statistic is requested).
     The default is \code{"standard"}, but it could also be (for example)
     \code{"Browne.residual.nt"}.}
@@ -435,6 +458,9 @@ Categorical estimation options:
     \item{\code{zero.cell.warn}:}{Logical. Only used if some observed 
       endogenous variables are categorical. If \code{TRUE}, give a warning if 
       one or more cells of a bivariate frequency table are empty.}
+    \item{\code{allow.empty.cell}:}{Logical. If \code{TRUE}, ignore
+      situations where an ordinal variable has fewer categories than
+      expected, or where a category is empty in a specific group.}
 }
 
 Starting values options:
@@ -456,6 +482,17 @@ Starting values options:
       \code{paramaterEstimates()} function, the values of the \code{est} or
       \code{start} or \code{ustart} column (whichever is found first) will be
       extracted.}
+    \item{\code{rstarts}:}{Integer. The number of refits that lavaan should
+      try with random starting values. Random starting values are computed
+      by drawing random numbers from a uniform distribution. Correlations
+      are drawn from the interval [-0.5, +0.5] and then converted to
+      covariances. Lower and upper bounds for (residual) variances are
+      computed just like the standard bounds in bounded estimation.
+      Random starting values are not computed for regression coefficients
+      (which are always zero) and factor loadings of higher-order constructs
+      (which are always unity). From all the runs that converged, the final
+      solution is the one that resulted in the smallest value for the
+      discrepancy function.}
 }
 
 Check options:
@@ -491,10 +528,11 @@ Check options:
 Verbosity options:
 
 \describe{
-    \item{\code{verbose}:}{If \code{TRUE}, the function value is printed out 
+    \item{\code{verbose}:}{If \code{TRUE}, show what lavaan is doing. During
+      estimation, the function value is printed out 
       during each iteration.}
-    \item{\code{warn}:}{If \code{TRUE}, some (possibly harmless) warnings 
-      are printed out during the iterations.}
+    \item{\code{warn}:}{If \code{FALSE}, suppress all lavaan-specific 
+      warning messages.}
     \item{\code{debug}:}{If \code{TRUE}, debugging information is printed 
       out.}
 }
@@ -528,6 +566,9 @@ Miscellaneous:
     \item{\code{store.vcov}}{Logical. If \code{TRUE}, and \code{se=} is not
       set to \code{"none"}, store the full variance-covariance matrix of
       the model parameters in the vcov slot of the fitted lavaan object.}
+    \item{\code{parser}}{Character. If \code{"new"} (the default), the new
+      parser is used to parse the model syntax. If \code{"old"}, the original
+      (pre 0.6-18) parser is used.}
 }
 
 }

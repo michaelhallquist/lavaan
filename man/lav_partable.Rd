@@ -52,7 +52,7 @@ lav_partable_merge(pt1 = NULL, pt2 = NULL, remove.duplicated = FALSE,
 lav_partable_add(partable = NULL, add = list())
 }
 \arguments{
-\item{partable}{A parameter table. see \code{\link{lavParTable}} 
+\item{partable}{A parameter table. See \code{\link{lavParTable}} 
 for more information.}
 \item{blocks}{Character vector. Which columns in the parameter table should be
   taken to distinguish between different blocks of parameters (and hence
@@ -115,9 +115,9 @@ the simple method for generating starting values.}
 when merging two parameter tables.}
 \item{fromLast}{Logical. If \code{TRUE}, duplicated elements are considered
 from the bottom of the merged parameter table.}
-\item{warn}{Logical. If code{TRUE}, a warning is produced when duplicated
+\item{warn}{Logical. If \code{TRUE}, a warning is produced when duplicated
 elements are found, when merging two parameter tables.}
-\item{add}{A named list.}{A single row of a parameter table as a named list.}
+\item{add}{A named list.  A single row of a parameter table as a named list.}
 }
 \examples{
 # generate syntax for an independence model

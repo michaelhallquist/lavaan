@@ -244,6 +244,27 @@ Model-implied sample statistics:
         observed variables.}
     \item{\code{"rsquare"}:}{The R-square value for all endogenous variables.
         Aliases: \code{"r-square"}, \code{"r2"}.}
+	\item{\code{"fs.determinacy"}:}{The factor determinacies (based on
+	   regression factor scores). They represent the (estimated) correlation
+       between the factor scores and the latent variables scores.}
+	\item{\code{"fs.reliability"}:}{The factor reliabilities (based on
+       regression factor scores). They are the square of the factor 
+       determinacies.}
+    \item{\code{"fs.determinacy.Bartlett"}:}{The factor determinacies (based on
+       Bartlett factor scores). They represent the (estimated) correlation
+       between the factor scores and the latent variables scores.}
+    \item{\code{"fs.reliability.Bartlett"}:}{The factor reliabilities (based on
+       Bartlett factor scores). They are the square of the factor 
+       determinacies.}
+}
+
+Diagnostics:
+
+\describe{
+    \item{\code{"mdist2.fs"}:}{The squared Mahalanobis distances for the (Bartlett) factor scores.}
+    \item{\code{"mdist.fs"}:}{The Mahalanobis distances for the (Bartlett) factor scores.}
+    \item{\code{"mdist2.resid"}:}{The squared Mahalanobis distances for the (Bartlett-based) casewise residuals.}
+    \item{\code{"mdist.fs"}:}{The Mahalanobis distances for the (Bartlett-based) casewise residuals.}
 }
 
 Optimizer information:
@@ -256,7 +277,6 @@ Optimizer information:
     \item{\code{"optim"}:}{List. All available information regarding the
         optimization results.}
     \item{\code{"npar"}:}{Integer. Number of free parameters (ignoring constraints).}
-    \item{\code{"coef"}:}{Numeric. The estimated parameter vector.}
 }
 
 Gradient, Hessian, observed, expected and first.order information matrices:
